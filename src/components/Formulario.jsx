@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
+import Error from './Error';
 
-const Formulario = () => {
+const Formulario = ({ pacientes, setPacientes, paciente, setPaciente }) => {
 
     const [nombre, setNombre] = useState('');
     const [propietario, setPropietario] = useState('');
@@ -9,6 +10,24 @@ const Formulario = () => {
     const [sintomas, setSintomas] = useState('');
 
     const [error, setError] = useState(false)
+
+    useEffect(() => {
+        
+        if(Object.keys(paciente).length > 0) {
+            setNombre(paciente.nombre)
+            setPropietario(paciente.propietario)
+            setEmail(paciente.email)
+            setFecha(paciente.fecha)
+            setSintomas(paciente.sintomas)
+        }
+    }, [paciente])
+
+    const generarId = () => {
+        const fecha = Date.now().toString(36)
+        const random = Math.random().toString(36).substring(2)
+
+        return fecha + random
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -19,6 +38,36 @@ const Formulario = () => {
             return;
         }
         setError(false)
+
+        const objetoPaciente = {
+            nombre, 
+            propietario, 
+            email, 
+            fecha, 
+            sintomas
+        }
+
+        if(paciente.id) {
+            //Editando el registro
+            objetoPaciente.id = paciente.id
+            const pacientesActualizados = pacientes.map(pacienteState => pacienteState.id === paciente.id ?
+                objetoPaciente : pacienteState)
+
+            setPacientes(pacientesActualizados)
+            setPaciente({})
+        }else {
+            objetoPaciente.id = generarId()
+            setPacientes([...pacientes, objetoPaciente])
+        }
+
+
+
+        //REINICIAR EL FORMULARIO
+        setNombre('')
+        setPropietario('')
+        setEmail('')
+        setFecha('')
+        setSintomas('')
     }
 
 
@@ -26,17 +75,15 @@ const Formulario = () => {
         <div className="md:w-1/2 lg:w-2/5">
             <h2 className="font-black text-3xl text-center">Seguimiento de Pacientes</h2>
             <p className="text-lg mt-5 text-center mb-10">
-                Aañade Pacientes y {''}
+                Añade Pacientes y {''}
                 <span className="text-indigo-600 font-bold">Administralos</span>
             </p>
 
             <form
                 onSubmit={handleSubmit}
                 className="bg-white shadow-md rounded-lg py-10 px-5 mb-10 m-3">
-                {error && <div className='bg-red-700 text-white text-center p-3 uppercase font-bold mb-3 rounded-md'>
-                                <p>Debes rellenar todos los campos</p>
-                            </div>
-                }
+                {error &&  <Error><p>Debes rellenar todos los campos</p>
+                </Error>}
                 <div className="mb-5">
                     <label htmlFor="mascota" className="block text-gray-700 uppercase font-bold">
                         Nombre de la Mascota
@@ -91,7 +138,7 @@ const Formulario = () => {
                 </div>
                 <div className="mb-5">
                     <label htmlFor="email" className="block text-gray-700 uppercase font-bold">
-                        Email de contacto
+                        Síntomas
                     </label>
                     <textarea
                         id = "sintomas"
@@ -104,7 +151,7 @@ const Formulario = () => {
                 <input
                     type = "submit"
                     className = "bg-indigo-600 w-full p-3 text-white uppercase font-bold rounded-md hover:bg-indigo-800 cursor-pointer transition-all duration-400"
-                    value = "Agregar Paciente"
+                    value = {paciente.id ? "Editar paciente" : "Agregar paciente"}
                 />
             </form>
         </div>
